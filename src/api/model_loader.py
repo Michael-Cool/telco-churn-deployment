@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 def load_model():
-    model_path = Path(__file__).resolve().parents[1] / "models" / "xgb_model.pkl"
+    model_path = Path(__file__).resolve().parents[1] / "models" / "xgboost_model.pkl"
     return joblib.load(model_path)
 
 
