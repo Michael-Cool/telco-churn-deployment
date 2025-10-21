@@ -1,27 +1,45 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-from .model_loader import load_model, predict_proba
+from fastapi import FastAPI, HTTPException
+from src.api.model_loader import load_model
+from src.api.schemas import CustomerData, ChurnPrediction
+import pandas as pd
 
-app = FastAPI(title="Churn Prediction API", version="1.0")
+app = FastAPI(
+    title="Telco Churn Prediction API",
+    description="Predicts customer churn probability based on input features.",
+    version="1.0.0",
+)
 
-
-class CustomerInput(BaseModel):
-    tenure: float
-    MonthlyCharges: float
-    Contract_Two_year: int
-    PaymentMethod_Electronic_check: int
-    InternetService_Fiber_optic: int
-
-
-model = load_model()
+# Modell laden beim Start
+try:
+    model = load_model()
+except Exception as e:
+    model = None
+    print(f"❌ Model could not be loaded: {e}")
 
 
 @app.get("/")
 def root():
-    return {"message": "Churn Prediction API is running."}
+    return {"message": "Telco Churn Prediction API is running 🚀"}
 
 
-@app.post("/predict")
-def predict(input_data: CustomerInput):
-    prob = predict_proba(model, input_data.dict())
-    return {"churn_probability": round(prob, 3)}
+@app.get("/health")
+def health_check():
+    if model is None:
+        raise HTTPException(status_code=500, detail="Model not loaded")
+    return {"status": "healthy"}
+
+
+@app.post("/predict", response_model=ChurnPrediction)
+def predict(data: CustomerData):
+    if model is None:
+        raise HTTPException(status_code=500, detail="Model not loaded")
+
+    # Eingabedaten in DataFrame umwandeln
+    input_df = pd.DataFrame([data.dict()])
+
+    try:
+        probability = model.predict_proba(input_df)[0][1]
+        label = "Churn" if probability > 0.5 else "No Churn"
+        return ChurnPrediction(churn_probability=float(probability), churn_label=label)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {e}")
