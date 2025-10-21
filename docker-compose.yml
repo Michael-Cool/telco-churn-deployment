@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  churn-api:
+    container_name: telco-churn-api
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+    command: >
+      uvicorn src.api.main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ENV=development
