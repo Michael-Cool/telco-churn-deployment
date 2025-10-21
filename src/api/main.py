@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from src.api.model_loader import load_model
 from src.api.schemas import CustomerData, ChurnPrediction
 import pandas as pd
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 app = FastAPI(
     title="Telco Churn Prediction API",
@@ -24,7 +24,7 @@ def root():
 
 
 class HealthResponse(BaseModel):
-    status: str
+    status: str = Field(..., example="healthy")
 
 
 @app.get("/health", response_model=HealthResponse)
