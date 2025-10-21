@@ -1,23 +1,18 @@
-# === Base Image: Minimal Debian mit Python ===
-FROM debian:bookworm-slim
+# === Base Image ===
+FROM python:3.11-slim
 
-# 1️⃣ System & Python installieren
-RUN apt-get update && \
-    apt-get install -y python3 python3-pip && \
-    rm -rf /var/lib/apt/lists/*
-
-# 2️⃣ Arbeitsverzeichnis anlegen
+# === Arbeitsverzeichnis im Container ===
 WORKDIR /app
 
-# 3️⃣ Dependencies installieren
+# === Dependencies kopieren und installieren ===
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 4️⃣ Quellcode kopieren
+# === Quellcode kopieren ===
 COPY src ./src
 
-# 5️⃣ Port öffnen
+# === Port 8000 für FastAPI ===
 EXPOSE 8000
 
-# 6️⃣ Containerstart: FastAPI über Uvicorn
-CMD ["python3", "-m", "uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# === Startbefehl ===
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
