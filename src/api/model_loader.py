@@ -24,37 +24,76 @@ def load_model():
 
 
 def preprocess_input(data: dict) -> pd.DataFrame:
-    """Convert raw input into model-ready numeric dataframe"""
+    """Convert raw input into model-ready dataframe with correct one-hot columns"""
     d = data.copy()
 
-    # binary features
-    for col in ["gender", "Partner", "Dependents", "PhoneService", "PaperlessBilling"]:
-        d[col] = binary_map.get(d[col], 0)
+    # Yes/No binary maps
+    yes_no_map = {"Yes": 1, "No": 0}
+    gender_map = {"Male": 1, "Female": 0}
 
-    # handle categorical mappings (one-hot)
-    contract_cols = ["Contract_Month-to-month", "Contract_One_year", "Contract_Two_year"]
-    d.update(dict(zip(contract_cols, contract_map.get(data["Contract"], [0, 0, 0]))))
+    # Basismapping
+    d["gender_Male"] = gender_map.get(d["gender"], 0)
+    d["SeniorCitizen"] = d.get("SeniorCitizen", 0)
+    d["Partner_Yes"] = yes_no_map.get(d["Partner"], 0)
+    d["Dependents_Yes"] = yes_no_map.get(d["Dependents"], 0)
+    d["PhoneService_Yes"] = yes_no_map.get(d["PhoneService"], 0)
+    d["PaperlessBilling_Yes"] = yes_no_map.get(d["PaperlessBilling"], 0)
 
-    internet_cols = ["InternetService_DSL", "InternetService_Fiber_optic", "InternetService_No"]
-    d.update(dict(zip(internet_cols, internet_map.get(data["InternetService"], [0, 0, 0]))))
+    # MultipleLines
+    d["MultipleLines_No_phone_service"] = 1 if d["MultipleLines"] == "No phone service" else 0
+    d["MultipleLines_Yes"] = 1 if d["MultipleLines"] == "Yes" else 0
 
-    payment_cols = [
-        "PaymentMethod_Electronic_check",
-        "PaymentMethod_Mailed_check",
-        "PaymentMethod_Bank_transfer_(automatic)",
-        "PaymentMethod_Credit_card_(automatic)"
+    # InternetService
+    d["InternetService_DSL"] = 1 if d["InternetService"] == "DSL" else 0
+    d["InternetService_Fiber_optic"] = 1 if d["InternetService"] == "Fiber optic" else 0
+    d["InternetService_No"] = 1 if d["InternetService"] == "No" else 0
+
+    # OnlineSecurity, OnlineBackup, DeviceProtection, TechSupport, StreamingTV, StreamingMovies
+    for col in ["OnlineSecurity", "OnlineBackup", "DeviceProtection", "TechSupport", "StreamingTV", "StreamingMovies"]:
+        d[f"{col}_No_internet_service"] = 1 if d[col] == "No internet service" else 0
+        d[f"{col}_Yes"] = 1 if d[col] == "Yes" else 0
+
+    # Contract
+    d["Contract_Month-to-month"] = 1 if d["Contract"] == "Month-to-month" else 0
+    d["Contract_One_year"] = 1 if d["Contract"] == "One year" else 0
+    d["Contract_Two_year"] = 1 if d["Contract"] == "Two year" else 0
+
+    # PaymentMethod
+    for pm in [
+        "Electronic check", "Mailed check",
+        "Bank transfer (automatic)", "Credit card (automatic)"
+    ]:
+        key = f"PaymentMethod_{pm}"
+        d[key] = 1 if d["PaymentMethod"] == pm else 0
+
+    # Keep numerical columns
+    d["tenure"] = float(d["tenure"])
+    d["MonthlyCharges"] = float(d["MonthlyCharges"])
+    d["TotalCharges"] = float(d["TotalCharges"])
+
+    # Exact order of model features
+    feature_order = [
+        'Contract', 'Dependents_Yes', 'DeviceProtection_No_internet_service',
+        'DeviceProtection_Yes', 'InternetService', 'MonthlyCharges',
+        'MultipleLines_No_phone_service', 'MultipleLines_Yes',
+        'OnlineBackup_No_internet_service', 'OnlineBackup_Yes',
+        'OnlineSecurity_No_internet_service', 'OnlineSecurity_Yes',
+        'PaperlessBilling_Yes', 'Partner_Yes',
+        'PaymentMethod_Credit_card_(automatic)', 'PaymentMethod_Electronic_check',
+        'PaymentMethod_Mailed_check', 'PhoneService_Yes', 'SeniorCitizen',
+        'StreamingMovies_No_internet_service', 'StreamingMovies_Yes',
+        'StreamingTV_No_internet_service', 'StreamingTV_Yes',
+        'TechSupport_No_internet_service', 'TechSupport_Yes', 'TotalCharges',
+        'gender_Male', 'tenure'
     ]
-    d.update(dict(zip(payment_cols, payment_map.get(data["PaymentMethod"], [0, 0, 0, 0]))))
 
-    # keep only known model columns
-    cols = [
-        "SeniorCitizen", "tenure", "MonthlyCharges", "TotalCharges",
-        "gender", "Partner", "Dependents", "PhoneService", "PaperlessBilling",
-        *contract_cols, *internet_cols, *payment_cols
-    ]
+    df = pd.DataFrame([d])
+    # Füge fehlende Spalten mit 0 hinzu
+    for col in feature_order:
+        if col not in df.columns:
+            df[col] = 0
 
-    df = pd.DataFrame([d], columns=cols).fillna(0)
-    return df
+    return df[feature_order]
 
 
 def predict_proba(model, input_data: dict):
