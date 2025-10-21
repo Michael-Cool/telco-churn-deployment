@@ -206,3 +206,33 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 app_packages.zip
+
+# ------------------------
+# Deployment / MLOps extras
+# ------------------------
+
+# Model artefacts
+*.pkl
+*.joblib
+*.h5
+
+# Large datasets / temp
+*.csv
+*.tsv
+*.parquet
+*.zip
+*.tar
+*.gz
+*.log
+
+# Docker & build artefacts
+*.pid
+*.sock
+*.log
+docker-compose.override.yml
+
+# FastAPI / Uvicorn logs
+uvicorn*.log
+
+# Local AWS credentials (sicherheit!)
+.aws/
