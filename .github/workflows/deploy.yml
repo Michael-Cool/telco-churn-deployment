@@ -1,0 +1,61 @@
+name: Deploy Churn API to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  IMAGE_NAME: ghcr.io/michael-cool/telco-churn-api
+  IMAGE_TAG: v1.0.${{ github.run_number }}
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # === Code auschecken ===
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # === Python einrichten & Tests (optional) ===
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          pip install --no-cache-dir -r requirements.txt
+          pip install flake8 pytest
+
+      - name: Lint with flake8
+        run: |
+          flake8 src/api --max-line-length=120
+
+      # === Docker Build + Push ===
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t $IMAGE_NAME:$IMAGE_TAG .
+          docker push $IMAGE_NAME:$IMAGE_TAG
+
+      # === Deployment auf EC2 ===
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker login ghcr.io -u michael-cool -p ${{ secrets.GITHUB_TOKEN }}
+            docker pull $IMAGE_NAME:$IMAGE_TAG
+            docker stop churn-api || true
+            docker rm churn-api || true
+            docker run -d -p 8000:8000 --name churn-api $IMAGE_NAME:$IMAGE_TAG
