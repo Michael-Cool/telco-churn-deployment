@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
 env:
   IMAGE_NAME: ghcr.io/michael-cool/telco-churn-api
   IMAGE_TAG: v1.0.${{ github.run_number }}
