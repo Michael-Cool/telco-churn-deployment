@@ -26,4 +26,3 @@ class CustomerData(BaseModel):
 class ChurnPrediction(BaseModel):
     churn_probability: float
     churn_label: str
-    
