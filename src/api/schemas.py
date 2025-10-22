@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import Optional
 
 
 class CustomerData(BaseModel):
@@ -27,3 +26,4 @@ class CustomerData(BaseModel):
 class ChurnPrediction(BaseModel):
     churn_probability: float
     churn_label: str
+    

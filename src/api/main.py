@@ -27,3 +27,4 @@ def predict(data: CustomerData):
         return ChurnPrediction(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {e}")
+    
