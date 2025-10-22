@@ -19,11 +19,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # === Code auschecken ===
+      # === 1️⃣ Code auschecken ===
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # === Python einrichten & Tests (optional) ===
+      # === 2️⃣ Python Setup & Linting ===
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -35,10 +35,9 @@ jobs:
           pip install flake8 pytest
 
       - name: Lint with flake8
-        run: |
-          flake8 src/api --max-line-length=120
+        run: flake8 src/api --max-line-length=120
 
-      # === Docker Build + Push ===
+      # === 3️⃣ Docker Build & Push ===
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -48,10 +47,11 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t $IMAGE_NAME:$IMAGE_TAG .
-          docker push $IMAGE_NAME:$IMAGE_TAG
+          echo "🚀 Building image $IMAGE_NAME:$IMAGE_TAG ..."
+          docker buildx build --platform linux/amd64 -t $IMAGE_NAME:$IMAGE_TAG --push .
+          echo "✅ Image pushed successfully."
 
-      # === Deployment auf EC2 ===
+      # === 4️⃣ Deployment auf EC2 ===
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -62,10 +62,34 @@ jobs:
             IMAGE_NAME="ghcr.io/michael-cool/telco-churn-api"
             IMAGE_TAG="v1.0.${{ github.run_number }}"
 
+            echo "🔐 Logging into GHCR..."
             docker login ghcr.io -u michael-cool -p ${{ secrets.GHCR_PAT }}
+
+            echo "🌀 Pulling latest image..."
             docker pull $IMAGE_NAME:$IMAGE_TAG
 
+            echo "🧹 Stopping old container..."
             docker stop churn-api || true
             docker rm churn-api || true
 
+            echo "📦 Running new container..."
             docker run -d -p 8000:8000 --name churn-api $IMAGE_NAME:$IMAGE_TAG
+
+      # === 5️⃣ Fallback-Modell automatisch aktualisieren ===
+      - name: Update fallback model on EC2
+        if: success()  # nur bei erfolgreichem Deployment
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "🌀 Checking for active model..."
+            MODEL_PATH=$(docker exec churn-api bash -c "test -f src/models/xgboost_model.pkl && echo 'exists'")
+            if [ "$MODEL_PATH" = "exists" ]; then
+              echo "🔁 Copying current model to previous_model.pkl..."
+              docker exec churn-api bash -c "cp src/models/xgboost_model.pkl src/models/previous_model.pkl"
+              echo "✅ previous_model.pkl updated successfully."
+            else
+              echo "⚠️ No current model found – fallback not updated."
+            fi

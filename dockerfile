@@ -11,6 +11,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # === Quellcode kopieren ===
 COPY src ./src
 
+# === Modelle separat kopieren (wichtiger Fix) ===
+COPY src/models ./src/models
+
 # === Port 8000 für FastAPI ===
 EXPOSE 8000
 
