@@ -4,15 +4,27 @@ import pandas as pd
 import numpy as np
 
 # === Model & Feature Paths ===
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "xgboost_model.pkl")
-FEATURE_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "feature_names.pkl")
+BASE_DIR = os.path.join(os.path.dirname(__file__), "..", "models")
+MODEL_PATH = os.path.join(BASE_DIR, "xgboost_model.pkl")
+FEATURE_PATH = os.path.join(BASE_DIR, "feature_names.pkl")
+FALLBACK_PATH = os.path.join(BASE_DIR, "previous_model.pkl")
 
 
 def load_model():
-    """Load the trained XGBoost model"""
-    if not os.path.exists(MODEL_PATH):
-        raise FileNotFoundError(f"Model file not found at {MODEL_PATH}")
-    return joblib.load(MODEL_PATH)
+    """Load the trained XGBoost model with fallback support"""
+    try:
+        if not os.path.exists(MODEL_PATH):
+            raise FileNotFoundError(f"Main model not found at {MODEL_PATH}")
+        model = joblib.load(MODEL_PATH)
+        print(f"✅ Model loaded successfully from {MODEL_PATH}")
+    except Exception as e:
+        print(f"⚠️ Error loading main model: {e}")
+        if os.path.exists(FALLBACK_PATH):
+            model = joblib.load(FALLBACK_PATH)
+            print(f"Fallback model loaded from {FALLBACK_PATH}")
+        else:
+            raise RuntimeError("❌ No valid model available (main + fallback missing).")
+    return model
 
 
 def preprocess_input(data: dict) -> pd.DataFrame:
