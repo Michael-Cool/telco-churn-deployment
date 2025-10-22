@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 import logging
+import boto3
 
 # === Logging Setup ===
 logging.basicConfig(level=logging.INFO)
@@ -13,6 +14,10 @@ MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "models")
 MODEL_PATH = os.path.join(MODEL_DIR, "xgboost_model.pkl")
 FALLBACK_MODEL_PATH = os.path.join(MODEL_DIR, "previous_model.pkl")
 FEATURE_PATH = os.path.join(MODEL_DIR, "feature_names.pkl")
+
+# === S3 Fallback Config ===
+S3_BUCKET = "telco-churn-mlflow-michael"
+S3_FEATURE_KEY = "models/v1.0.8/feature_names.pkl"
 
 
 def load_model():
@@ -32,10 +37,13 @@ def load_model():
 
 
 def load_feature_names():
-    """Load feature names safely."""
+    """Load feature names safely with S3 fallback."""
     try:
         if not os.path.exists(FEATURE_PATH):
-            raise FileNotFoundError(f"Feature file not found at {FEATURE_PATH}")
+            logger.warning("⚠️ feature_names.pkl not found locally. Attempting S3 download...")
+            s3 = boto3.client("s3")
+            s3.download_file(S3_BUCKET, S3_FEATURE_KEY, FEATURE_PATH)
+            logger.info("✅ Successfully downloaded feature_names.pkl from S3.")
         return joblib.load(FEATURE_PATH)
     except Exception as e:
         logger.error(f"❌ Feature names loading failed: {e}")
