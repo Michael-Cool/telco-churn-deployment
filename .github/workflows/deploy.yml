@@ -59,8 +59,13 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker login ghcr.io -u michael-cool -p ${{ secrets.GITHUB_TOKEN }}
+            IMAGE_NAME="ghcr.io/michael-cool/telco-churn-api"
+            IMAGE_TAG="v1.0.${{ github.run_number }}"
+
+            docker login ghcr.io -u michael-cool -p ${{ secrets.GHCR_PAT }}
             docker pull $IMAGE_NAME:$IMAGE_TAG
+
             docker stop churn-api || true
             docker rm churn-api || true
+
             docker run -d -p 8000:8000 --name churn-api $IMAGE_NAME:$IMAGE_TAG
