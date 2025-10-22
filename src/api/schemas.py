@@ -18,7 +18,10 @@ class CustomerData(BaseModel):
     StreamingMovies: str = Field(..., description="Yes, No, or No internet service")
     Contract: str = Field(..., description="Month-to-month, One year, or Two year")
     PaperlessBilling: str = Field(..., pattern="^(Yes|No)$")
-    PaymentMethod: str = Field(..., description="Electronic check, Mailed check, Bank transfer (automatic), or Credit card (automatic)")
+    PaymentMethod: str = Field(
+        ...,
+        description="Electronic check, Mailed check, Bank transfer (automatic), or Credit card (automatic)"
+    )
     MonthlyCharges: confloat(ge=0) = Field(..., description="Monthly payment amount")
     TotalCharges: confloat(ge=0) = Field(..., description="Total payment amount to date")
 
