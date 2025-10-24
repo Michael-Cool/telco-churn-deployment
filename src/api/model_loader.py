@@ -115,7 +115,7 @@ def predict_proba(model, input_data: dict):
     df = preprocess_input(input_data)
     try:
         proba = model.predict_proba(df)[0][1]
-        label = "Churn" if proba >= 0.5 else "No Churn"
+        label = "Churn" if proba >= 0.15 else "No Churn"
         return {"churn_probability": float(np.round(proba, 3)), "churn_label": label}
     except Exception as e:
         logger.error(f"Prediction failed: {e}")
