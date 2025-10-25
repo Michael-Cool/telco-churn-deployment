@@ -24,15 +24,15 @@ def load_model():
     """Load main model, or fallback if unavailable."""
     try:
         if os.path.exists(MODEL_PATH):
-            logger.info("✅ Loaded main model.")
+            logger.info("Loaded main model.")
             return joblib.load(MODEL_PATH)
         elif os.path.exists(FALLBACK_MODEL_PATH):
-            logger.warning("⚠️ Main model missing. Loaded fallback model.")
+            logger.warning("Main model missing. Loaded fallback model.")
             return joblib.load(FALLBACK_MODEL_PATH)
         else:
-            raise FileNotFoundError("❌ No model available (main or fallback).")
+            raise FileNotFoundError("No model available (main or fallback).")
     except Exception as e:
-        logger.error(f"❌ Model loading failed: {e}")
+        logger.error(f"Model loading failed: {e}")
         raise
 
 
@@ -43,10 +43,10 @@ def load_feature_names():
             logger.warning("⚠️ feature_names.pkl not found locally. Attempting S3 download...")
             s3 = boto3.client("s3")
             s3.download_file(S3_BUCKET, S3_FEATURE_KEY, FEATURE_PATH)
-            logger.info("✅ Successfully downloaded feature_names.pkl from S3.")
+            logger.info("Successfully downloaded feature_names.pkl from S3.")
         return joblib.load(FEATURE_PATH)
     except Exception as e:
-        logger.error(f"❌ Feature names loading failed: {e}")
+        logger.error(f"Feature names loading failed: {e}")
         raise
 
 
