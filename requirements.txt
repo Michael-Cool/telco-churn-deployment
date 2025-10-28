@@ -2,8 +2,8 @@ fastapi==0.119.0
 uvicorn==0.38.0
 pandas==2.3.3
 numpy==1.26.4
-scikit-learn==1.7.2
-xgboost==3.0.5
+scikit-learn==1.6.1
+xgboost==2.1.4
 joblib==1.5.2
 mlflow==2.14.1
 prometheus-client==0.23.1
