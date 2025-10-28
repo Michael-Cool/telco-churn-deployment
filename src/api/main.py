@@ -6,7 +6,11 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("churn_api")
 
-app = FastAPI(title="Churn API", version="1.0")
+app = FastAPI(
+    title="Churn Prediction API",
+    version="1.0",
+    description="Predicts customer churn probability.",
+)
 
 try:
     model = load_model()
@@ -17,10 +21,18 @@ except Exception as e:
 
 @app.get("/")
 def root():
-    return {"message": "🚀 API online"}
+    return {"message": "Churn Prediction API running 🚀"}
 
-@app.post("/predict")
+@app.get("/health")
+def health():
+    return {"model_loaded": model is not None}
+
+@app.post("/predict", response_model=ChurnPrediction)
 def predict(data: CustomerData):
     if model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
-    return predict_proba(model, data.dict())
+    try:
+        result = predict_proba(model, data.dict())
+        return ChurnPrediction(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
