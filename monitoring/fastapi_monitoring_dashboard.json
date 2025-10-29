@@ -4,7 +4,7 @@
   "title": "FastAPI Monitoring (Local)",
   "timezone": "browser",
   "schemaVersion": 36,
-  "version": 2,
+  "version": 5,
   "refresh": "5s",
   "time": {
     "from": "now-15m",
@@ -18,7 +18,7 @@
       "gridPos": { "x": 0, "y": 0, "w": 24, "h": 8 },
       "targets": [
         {
-          "expr": "rate(http_request_duration_seconds_count[1m])",
+          "expr": "rate(http_requests_total[1m])",
           "legendFormat": "{{handler}} ({{status}})",
           "refId": "A"
         }
@@ -39,13 +39,13 @@
     },
     {
       "type": "timeseries",
-      "title": "Fehlerquote (5xx in %)",
+      "title": "Fehlerquote (alle Fehler in %)",
       "id": 3,
       "gridPos": { "x": 0, "y": 16, "w": 24, "h": 8 },
       "targets": [
         {
-          "expr": "100 * (sum(rate(http_request_duration_seconds_count{status=~\"5..\"}[1m])) / sum(rate(http_request_duration_seconds_count[1m])))",
-          "legendFormat": "Fehlerquote",
+          "expr": "100 * (sum(rate(http_requests_total{status!~\"2..\"}[1m])) / sum(rate(http_requests_total[1m])))",
+          "legendFormat": "Fehlerquote (4xx + 5xx)",
           "refId": "C"
         }
       ]

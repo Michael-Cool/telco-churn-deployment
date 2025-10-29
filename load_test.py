@@ -5,7 +5,10 @@ import threading
 
 BASE_URL = "http://localhost:8000"
 
-def random_customer():
+def random_customer(valid=True):
+    if not valid:
+        # Ungültige Anfrage (z. B. fehlende Felder oder falsche Datentypen)
+        return {"tenure": "invalid_value"}
     return {
         "gender": random.choice(["Male", "Female"]),
         "SeniorCitizen": random.choice([0, 1]),
@@ -33,12 +36,19 @@ def random_customer():
 
 def churn_predict_loop():
     while True:
-        data = random_customer()
+        # 5 % fehlerhafte Requests
+        valid = random.random() > 0.05
+        data = random_customer(valid=valid)
         try:
             response = requests.post(f"{BASE_URL}/predict", json=data, timeout=5)
-            print(f"✅ /predict {response.status_code}")
+            if response.status_code >= 500:
+                print(f"❌ /predict {response.status_code}")
+            elif response.status_code >= 400:
+                print(f"⚠️ /predict client error {response.status_code}")
+            else:
+                print(f"✅ /predict {response.status_code}")
         except Exception as e:
-            print(f"❌ /predict failed: {e}")
+            print(f"🔥 /predict failed: {e}")
         time.sleep(random.uniform(0.3, 1.5))
 
 def health_check_loop():
@@ -60,7 +70,7 @@ def metrics_loop():
         time.sleep(5)
 
 def main():
-    print("🚀 Starting parallel load test for /predict, /health, /metrics...\n")
+    print("🚀 Starting parallel load test for /predict, /health, /metrics with simulated errors...\n")
 
     threads = [
         threading.Thread(target=churn_predict_loop, daemon=True),
