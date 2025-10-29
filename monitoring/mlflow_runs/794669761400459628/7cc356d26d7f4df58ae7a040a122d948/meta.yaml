@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/michaelnatterer/telco-churn-deployment/monitoring/mlflow_runs/794669761400459628/7cc356d26d7f4df58ae7a040a122d948/artifacts
+end_time: 1761745510398
+entry_point_name: ''
+experiment_id: '794669761400459628'
+lifecycle_stage: active
+run_id: 7cc356d26d7f4df58ae7a040a122d948
+run_name: Model Evaluation (JSON + Threshold)
+run_uuid: 7cc356d26d7f4df58ae7a040a122d948
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1761745510390
+status: 3
+tags: []
+user_id: michaelnatterer
