@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from .model_loader import load_model, predict_proba
 from .schemas import CustomerData, ChurnPrediction
+from prometheus_fastapi_instrumentator import Instrumentator
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -12,6 +13,7 @@ app = FastAPI(
     description="Predicts customer churn probability.",
 )
 
+# === Load model once at startup ===
 try:
     model = load_model()
     logger.info("✅ Model loaded successfully.")
@@ -19,13 +21,17 @@ except Exception as e:
     logger.error(f"❌ Model failed to load: {e}")
     model = None
 
+
+# === API routes ===
 @app.get("/")
 def root():
     return {"message": "Churn Prediction API running 🚀"}
 
+
 @app.get("/health")
 def health():
     return {"model_loaded": model is not None}
+
 
 @app.post("/predict", response_model=ChurnPrediction)
 def predict(data: CustomerData):
@@ -36,3 +42,7 @@ def predict(data: CustomerData):
         return ChurnPrediction(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# === Prometheus metrics ===
+Instrumentator().instrument(app).expose(app)

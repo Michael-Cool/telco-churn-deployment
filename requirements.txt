@@ -8,3 +8,4 @@ joblib==1.5.2
 mlflow==2.14.1
 prometheus-client==0.23.1
 boto3==1.35.30
+prometheus-fastapi-instrumentator
