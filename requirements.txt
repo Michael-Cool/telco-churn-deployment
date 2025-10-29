@@ -9,3 +9,7 @@ mlflow==2.14.1
 prometheus-client==0.23.1
 boto3==1.35.30
 prometheus-fastapi-instrumentator
+mlflow
+evidently
+scikit-learn
+pandas
