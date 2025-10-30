@@ -1,32 +1,25 @@
-name: Evidently Drift Report
+import pandas as pd
+import os
+from evidently.report import Report
+from evidently.metric_preset import DataDriftPreset, TargetDriftPreset
 
-on:
-  schedule:
-    - cron: "0 0 1 * *"   # Läuft am 1. jeden Monats um 00:00 UTC
-  workflow_dispatch:       # Manuell auslösbar im GitHub-UI
+# === Ensure output directory ===
+REPORT_DIR = "monitoring/evidently_reports"
+os.makedirs(REPORT_DIR, exist_ok=True)
 
-jobs:
-  generate-report:
-    runs-on: ubuntu-latest
+# === Load reference (train) and current (test) data ===
+train = pd.read_csv("data/train_clean.csv")
+test = pd.read_csv("data/test_clean.csv")
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+reference = train.copy()
+current = test.copy()
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.9"
+# === Create and run report ===
+report = Report(metrics=[DataDriftPreset(), TargetDriftPreset()])
+report.run(reference_data=reference, current_data=current)
 
-      - name: Install dependencies
-        run: |
-          pip install evidently pandas
+# === Save report ===
+OUTPUT = f"{REPORT_DIR}/data_drift_report.html"
+report.save_html(OUTPUT)
 
-      - name: Generate Evidently Drift Report
-        run: python monitoring/evidently_drift.py
-
-      - name: Upload report as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: evidently-drift-report
-          path: monitoring/evidently_reports/
+print(f"✅ Evidently Drift Report created successfully: {OUTPUT}")

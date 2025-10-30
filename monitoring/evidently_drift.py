@@ -1,8 +1,7 @@
 import pandas as pd
 import os
-from evidently import Report
-from evidently.metrics import DataDriftMetrics, DatasetDriftMetrics
-from evidently.pipeline.column_mapping import ColumnMapping
+from evidently.report import Report
+from evidently.metric_preset import DataDriftPreset, TargetDriftPreset
 
 # === Ensure output directory ===
 REPORT_DIR = "monitoring/evidently_reports"
@@ -15,28 +14,9 @@ test = pd.read_csv("data/test_clean.csv")
 reference = train.copy()
 current = test.copy()
 
-target_col = "Churn"
-features = [c for c in reference.columns if c != target_col]
-
-# === Column Mapping ===
-column_mapping = ColumnMapping()
-column_mapping.target = target_col
-column_mapping.numerical_features = [c for c in features if reference[c].dtype != "object"]
-column_mapping.categorical_features = [c for c in features if reference[c].dtype == "object"]
-
-# === Create and run Evidently report ===
-report = Report(
-    metrics=[
-        DataDriftMetrics(),       # Feature-Drift pro Spalte
-        DatasetDriftMetrics()     # Gesamt-Drift-Score
-    ]
-)
-
-report.run(
-    reference_data=reference,
-    current_data=current,
-    column_mapping=column_mapping
-)
+# === Create and run report ===
+report = Report(metrics=[DataDriftPreset(), TargetDriftPreset()])
+report.run(reference_data=reference, current_data=current)
 
 # === Save report ===
 OUTPUT = f"{REPORT_DIR}/data_drift_report.html"
