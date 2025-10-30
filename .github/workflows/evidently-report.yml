@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install evidently==0.3.2 pandas
+          pip install "numpy<2.0" pandas evidently==0.3.2
 
       - name: Generate Evidently Drift Report
         run: python monitoring/evidently_drift.py
