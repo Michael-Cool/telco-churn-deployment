@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 from evidently import Report
-from evidently.metric_preset import DataDriftPreset
+from evidently.metrics import DataDriftTable
 from evidently import ColumnMapping
 
 # === Ensure output directory ===
