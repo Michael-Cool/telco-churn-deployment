@@ -1,7 +1,8 @@
 import pandas as pd
 import os
-from evidently import Report, ColumnMapping
+from evidently import Report
 from evidently.metrics import DataDriftMetric, DatasetDriftMetric
+from evidently.pipeline.column_mapping import ColumnMapping  # <– neuer Importpfad
 
 # === Ensure output directory ===
 REPORT_DIR = "monitoring/evidently_reports"
