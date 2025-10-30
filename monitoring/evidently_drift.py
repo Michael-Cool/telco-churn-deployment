@@ -1,8 +1,7 @@
 import pandas as pd
 import os
-from evidently import Report
-from evidently.metrics import DataDriftTable, DatasetDriftMetric
-from evidently import ColumnMapping
+from evidently import Report, ColumnMapping
+from evidently.metrics import DataDriftMetric, DatasetDriftMetric
 
 # === Ensure output directory ===
 REPORT_DIR = "monitoring/evidently_reports"
@@ -27,8 +26,8 @@ column_mapping.categorical_features = [c for c in features if reference[c].dtype
 # === Create and run Evidently report ===
 report = Report(
     metrics=[
-        DataDriftTable(),         # Überblick über Feature-Drift
-        DatasetDriftMetric()      # Zusammenfassender Drift-Score
+        DataDriftMetric(),        # Feature-Drift pro Spalte
+        DatasetDriftMetric()      # Gesamt-Drift-Score
     ]
 )
 
