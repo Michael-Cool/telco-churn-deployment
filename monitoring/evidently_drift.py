@@ -1,8 +1,8 @@
 import pandas as pd
 import os
 from evidently import Report
-from evidently.metrics import DataDriftMetric, DatasetDriftMetric
-from evidently.pipeline.column_mapping import ColumnMapping  # <– neuer Importpfad
+from evidently.metrics import DataDriftMetrics, DatasetDriftMetrics
+from evidently.pipeline.column_mapping import ColumnMapping
 
 # === Ensure output directory ===
 REPORT_DIR = "monitoring/evidently_reports"
@@ -27,8 +27,8 @@ column_mapping.categorical_features = [c for c in features if reference[c].dtype
 # === Create and run Evidently report ===
 report = Report(
     metrics=[
-        DataDriftMetric(),        # Feature-Drift pro Spalte
-        DatasetDriftMetric()      # Gesamt-Drift-Score
+        DataDriftMetrics(),       # Feature-Drift pro Spalte
+        DatasetDriftMetrics()     # Gesamt-Drift-Score
     ]
 )
 
